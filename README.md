@@ -8,7 +8,7 @@ Python (3.9.6) must be installed in PC.
 ### Instructions to Run
 
 ##### CLONE
-Clone the repo on you local PC by using `git clone https://github.com/abhishekgupta3/GUI-Based-Marksheet-Generator.git`.
+Clone the repo on your system by using `git clone https://github.com/abhishekgupta3/GUI-Based-Marksheet-Generator.git`.
 
 Setup project environment with [virtualenv](https://virtualenv.pypa.io) and [pip](https://pip.pypa.io).
 
