@@ -4,5 +4,5 @@ from Application import models
 # Register your models here.
 
 admin.site.register([
-    models.Form
+    models.myuploadfile
 ])

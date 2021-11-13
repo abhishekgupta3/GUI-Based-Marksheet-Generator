@@ -1,6 +1,9 @@
 from django.db import models
 
-# Create your models here.
-class Form(models.Model):
-    upload = models.FileField(upload_to = 'media')
+class myuploadfile(models.Model):
+    master_roll = models.FileField(upload_to="", null=True)
+    responses = models.FileField(upload_to="", null=True)
+    postive_marks = models.IntegerField(null=True)
+    negative_marks = models.IntegerField(null=True)
+
     
