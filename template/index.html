@@ -10,8 +10,8 @@
     </head>
     <body>
         <div class = "container pt-5">
-            {% csrf_token %}
             <form action="{% url 'fileapp:uploads' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
                 <div class = "form-group">
                     <label for = "master_roll">Browse for master_roll.csv</label>
                     <input type = "file" multiple name = "master_roll">
@@ -21,8 +21,8 @@
                     <input type = "file" multiple name = "responses">
                 </div>
                 <div class = "form-group">
-                    <input type = "text" placeholder = "Marks for correct ans" name = "postive_marks"/>
-                    <input type = "text" placeholder = "-ve marks for wrong ans" name = "negative_marks"/>
+                    <input type = "text" placeholder = "Marks for correct ans" name = "postive_marks" required />
+                    <input type = "text" placeholder = "-ve marks for wrong ans" name = "negative_marks" required />
                 </div>
                 <div class = "form-group"> 
                     <button type = "submit" class = "btn btn-primary">Generate Roll Number wise marksheet</button>
