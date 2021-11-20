@@ -14,11 +14,11 @@
                 {% csrf_token %}
                 <div class = "form-group">
                     <label for = "master_roll">Browse for master_roll.csv</label>
-                    <input type = "file" multiple name = "master_roll">
+                    <input type = "file" multiple name = "master_roll" required>
                 </div>
                 <div class="form-group">
                     <label for = "responses">Browse for responses</label>
-                    <input type = "file" multiple name = "responses">
+                    <input type = "file" multiple name = "responses" required>
                 </div>
                 <div class = "form-group">
                     <input type = "text" placeholder = "Marks for correct ans" name = "postive_marks" required />
@@ -30,6 +30,9 @@
                 <div class = "form-group">
                     <button type = "submit" class = "btn btn-primary">Generate Concise Marksheet with Roll Number</button>
                 </div>
+            </form>
+
+            <form action = '{% url 'fileapp:uploads' %}' method = 'GET'>
                 <div class = "form-group">
                     <button type = "submit" class = "btn btn-primary">Send Email</button>
                 </div> 

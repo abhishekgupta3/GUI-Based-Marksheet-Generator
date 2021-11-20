@@ -7,6 +7,7 @@ import openpyxl
 from openpyxl import workbook, load_workbook
 from openpyxl import styles
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
+from django.core.mail import EmailMessage
 
 colors = {
     "RED": '00FF0000',
@@ -206,17 +207,31 @@ def create_excel(row, postive_marks, negative_marks, size, num_questions):
     statusAns = f'[{correct_ans},{wrong_ans},{num_questions - correct_ans - wrong_ans}]'
     temp_row.append(statusAns)
 
-    with open('output/concise_marksheet.csv', 'a', newline='') as csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerow(temp_row)
-        csvFile.close()
+    try:
+        with open('output/concise_marksheet.csv', 'a', newline='') as csvFile:
+            writer = csv.writer(csvFile)
+            writer.writerow(temp_row)
+            csvFile.close()
+    except:
+        return
     
 # Create your views here.
 def index(request):
     context = {}
+    if os.path.exists('media'):
+        dir = 'media'
+        for f in os.listdir(dir):
+            os.remove(os.path.join(dir, f))
+
+    if os.path.exists('output'):
+        dir = 'output'
+        for f in os.listdir(dir):
+            os.remove(os.path.join(dir, f))
+        
     return render(request, "index.html", context)
 
 def send_files(request):
+
     if request.method == "POST" :
         file1 = request.FILES.getlist("master_roll")
         file2 = request.FILES.getlist("responses")
@@ -255,7 +270,7 @@ def send_files(request):
                     if not os.path.exists('output'):
                         os.makedirs('output')
 
-                    with open('output/concise_marksheet.csv', 'a', newline='') as csvFile:
+                    with open('output/concise_marksheet.csv', 'w', newline='') as csvFile:
                         writer = csv.writer(csvFile)
                         temp_row = row
                         temp_row.insert(6, 'Score_After_Negative')
@@ -291,4 +306,19 @@ def send_files(request):
                             writer.writerow(temp_row)
                             csvFile.close()
         
-        return HttpResponse("OK")
+        return render(request, "index.html")
+    else:
+        # Send Email
+        try:
+            with open('media/responses.csv') as csvFile:
+                file = csv.reader(csvFile)
+                for row in file:
+                    if row[0] != 'Timestamp':
+                        message = EmailMessage('Quiz Marksheet', '', to=[row[0], row[4]])
+                        roll_no = row[6].upper()
+                        message.attach_file(f'output/{roll_no}.xlsx')
+                        message.send()
+        except:
+            return HttpResponse('Some Error Occured...')
+
+        return HttpResponse('Email Sent Successfully...')
