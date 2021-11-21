@@ -7,10 +7,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <title>Project 1</title>
+        <style>
+            h2{
+                margin-left: 10px;
+                text-align: center;
+            }
+            .section{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        </style>
     </head>
     <body>
-        <div class = "container pt-5">
-            <form action="{% url 'fileapp:uploads' %}" method="POST" enctype="multipart/form-data">
+        <div class = "container my-5"> 
+            <h2>Marksheet Generator</h2>
+        </div>
+        <div class = "container pt-5 section">
+            <form action="{% url 'fileapp:roll-marksheet' %}" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class = "form-group">
                     <label for = "master_roll">Browse for master_roll.csv</label>
@@ -24,18 +38,21 @@
                     <input type = "text" placeholder = "Marks for correct ans" name = "postive_marks" required />
                     <input type = "text" placeholder = "-ve marks for wrong ans" name = "negative_marks" required />
                 </div>
-                <div class = "form-group"> 
+                <div class = "form-group section"> 
                     <button type = "submit" class = "btn btn-primary">Generate Roll Number wise marksheet</button>
                 </div>
-                <div class = "form-group">
-                    <button type = "submit" class = "btn btn-primary">Generate Concise Marksheet with Roll Number</button>
-                </div>
             </form>
+        </div>
 
-            <form action = '{% url 'fileapp:uploads' %}' method = 'GET'>
-                <div class = "form-group">
-                    <button type = "submit" class = "btn btn-primary">Send Email</button>
-                </div> 
+        <div class = "form-group section">
+            <form action = '{% url 'fileapp:concise-marksheet' %}'>
+                <button type = "submit" class = "btn btn-primary">Generate Concise Marksheet</button>
+            </form>
+        </div>
+
+        <div class = "form-group section">
+            <form action = '{% url 'fileapp:email' %}'>
+                <button type = "submit" class = "btn btn-primary">Send Email</button>
             </form>
         </div>
 

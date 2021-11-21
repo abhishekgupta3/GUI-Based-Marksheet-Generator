@@ -5,5 +5,7 @@ app_name = "fileapp"
 
 urlpatterns = [
     path('', views.index),
-    path("upload", views.send_files, name = "uploads")
+    path("roll-marksheet", views.roll_marksheet, name = "roll-marksheet"),
+    path("concise-marksheet", views.concise_marksheet, name = "concise-marksheet"),
+    path("email", views.send_email, name = "email"),
 ]

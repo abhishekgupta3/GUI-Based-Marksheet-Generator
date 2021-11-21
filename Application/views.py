@@ -169,7 +169,6 @@ def create_excel(row, postive_marks, negative_marks, size, num_questions):
             sheet[cell_pos].alignment = Alignment(horizontal = 'center')
             sheet[cell_pos].font = Font(name = 'Century', size = 12, color = colors["BLUE"])
             sheet[cell_pos].border = Border(left = Side(style='thin'), right = Side(style='thin'), top = Side(style='thin'), bottom = Side(style='thin'))
-
     
     sheet['B10'] = correct_ans
     sheet['B10'].font = Font(name = 'Century', size = 12, color = colors["GREEN"])
@@ -199,21 +198,7 @@ def create_excel(row, postive_marks, negative_marks, size, num_questions):
     sheet['E12'] = final_score
     sheet['E12'].font = Font(name = 'Century', size = 12, color = colors["BLUE"])
 
-    wb.save(f'output/{roll_no}.xlsx')
-
-    #consice marksheet
-    temp_row = row
-    temp_row.insert(6, final_score)
-    statusAns = f'[{correct_ans},{wrong_ans},{num_questions - correct_ans - wrong_ans}]'
-    temp_row.append(statusAns)
-
-    try:
-        with open('output/concise_marksheet.csv', 'a', newline='') as csvFile:
-            writer = csv.writer(csvFile)
-            writer.writerow(temp_row)
-            csvFile.close()
-    except:
-        return
+    wb.save(f'output/marksheet/{roll_no}.xlsx')
     
 # Create your views here.
 def index(request):
@@ -223,15 +208,14 @@ def index(request):
         for f in os.listdir(dir):
             os.remove(os.path.join(dir, f))
 
-    if os.path.exists('output'):
-        dir = 'output'
+    if os.path.exists('output/marksheet'):
+        dir = 'output/marksheet'
         for f in os.listdir(dir):
             os.remove(os.path.join(dir, f))
         
     return render(request, "index.html", context)
 
-def send_files(request):
-
+def roll_marksheet(request):
     if request.method == "POST" :
         file1 = request.FILES.getlist("master_roll")
         file2 = request.FILES.getlist("responses")
@@ -270,55 +254,109 @@ def send_files(request):
                     if not os.path.exists('output'):
                         os.makedirs('output')
 
-                    with open('output/concise_marksheet.csv', 'w', newline='') as csvFile:
-                        writer = csv.writer(csvFile)
-                        temp_row = row
-                        temp_row.insert(6, 'Score_After_Negative')
+                    if not os.path.exists('output/marksheet'):
+                        os.makedirs('output/marksheet')         
 
-                        cur_size = len(temp_row)
-                        temp_row.insert(cur_size + num_questions, 'statusAns')
-                        
-                        for iter in range(len(temp_row)):
-                            if len(temp_row[iter]) == 0:
-                                temp_row[iter] = f'Unnamed: {iter}'
-                            
-                        writer.writerow(temp_row)
-                        csvFile.close()
-
-        # Create Excel sheet of absent
+        # Create Excel sheet of absentees
         with open('media/master_roll.csv') as csvFile:
             file = csv.reader(csvFile)
             for row in file:
                 if row[0] != 'roll':
                     roll_no = row[0].upper()
-                    if not os.path.exists(f'output/{roll_no}.xlsx'):
+                    if not os.path.exists(f'output/marksheet/{roll_no}.xlsx'):
+
                         # create blank sheet
                         wb = openpyxl.Workbook() # create a new workbook
                         sheet = wb.active
                         sheet.title = 'quiz'
-                        wb.save(f'output/{roll_no}.xlsx')
+                        wb.save(f'output/marksheet/{roll_no}.xlsx')
 
-                        # update in concise marksheet
-                        temp_row = ['', '', 'Absent', row[1], '', '', 'Absent', roll_no]
+        return render(request, "index.html")
+
+def concise_marksheet(request):
+    stud_present = set() # set of roll number given the quiz
+
+    with open('media/responses.csv') as csvFile:
+        file = csv.reader(csvFile)
+        for row in file:
+            if row[0] != 'Timestamp':
+                roll_no = row[6].upper()
+                if row[6] == "ANSWER":
+                    size = len(row)
+                    num_questions = size - 7 
+                stud_present.add(roll_no)
+    
+    with open('media/responses.csv') as csvFile:
+        file = csv.reader(csvFile)
+        for row in file:
+            if row[0] != 'Timestamp':
+                size = len(row)
+                roll_no = row[6].upper()
+                num_questions = size - 7 
+
+                wb = load_workbook(f'output/marksheet/{roll_no}.xlsx')
+                sheet = wb.active
+                final_score = sheet['E12'].value
+                correct_ans = sheet['B10'].value
+                wrong_ans = sheet['C10'].value
+                temp_row = row
+                temp_row.insert(6, final_score)
+                statusAns = f'[{correct_ans},{wrong_ans},{num_questions - correct_ans - wrong_ans}]'
+                temp_row.append(statusAns)
+
+                try:
+                    with open('output/marksheet/concise_marksheet.csv', 'a', newline='') as csvFile:
+                        writer = csv.writer(csvFile)
+                        writer.writerow(temp_row)
+                        csvFile.close()
+                except:
+                    return HttpResponse('Some Error Occured...')
+            else:
+                # create concise marksheet
+                with open('output/marksheet/concise_marksheet.csv', 'w', newline='') as csvFile:
+                    writer = csv.writer(csvFile)
+                    temp_row = row
+                    temp_row.insert(6, 'Score_After_Negative')
+
+                    cur_size = len(temp_row)
+                    temp_row.insert(cur_size + num_questions, 'statusAns')
+                    
+                    for iter in range(len(temp_row)):
+                        if len(temp_row[iter]) == 0:
+                            temp_row[iter] = f'Unnamed: {iter}'
                         
-                        with open('output/concise_marksheet.csv', 'a', newline='') as csvFile:
+                    writer.writerow(temp_row)
+                    csvFile.close()
+
+        # absentees
+        with open('media/master_roll.csv') as csvFile:
+            file = csv.reader(csvFile)
+            for row in file:
+                if row[0] != 'roll':
+                    roll_no = row[0].upper()
+                    if roll_no not in stud_present:
+                        temp_row = ['', '', 'Absent', row[1], '', '', 'Absent', roll_no]
+                            
+                        with open('output/marksheet/concise_marksheet.csv', 'a', newline='') as csvFile:
                             writer = csv.writer(csvFile)
                             writer.writerow(temp_row)
-                            csvFile.close()
-        
-        return render(request, "index.html")
-    else:
-        # Send Email
-        try:
-            with open('media/responses.csv') as csvFile:
-                file = csv.reader(csvFile)
-                for row in file:
-                    if row[0] != 'Timestamp':
-                        message = EmailMessage('Quiz Marksheet', '', to=[row[0], row[4]])
-                        roll_no = row[6].upper()
-                        message.attach_file(f'output/{roll_no}.xlsx')
-                        message.send()
-        except:
-            return HttpResponse('Some Error Occured...')
+                            csvFile.close() 
 
-        return HttpResponse('Email Sent Successfully...')
+
+    return render(request, 'index.html')
+
+# Send Email
+def send_email(request):
+    try:
+        with open('media/responses.csv') as csvFile:
+            file = csv.reader(csvFile)
+            for row in file:
+                if row[0] != 'Timestamp':
+                    message = EmailMessage('Quiz Marksheet', '', to=[row[1], row[4]])
+                    roll_no = row[6].upper()
+                    message.attach_file(f'output/marksheet/{roll_no}.xlsx')
+                    message.send()
+    except:
+        return HttpResponse('Some Error Occured...')
+
+    return HttpResponse('Email Sent Successfully...')
